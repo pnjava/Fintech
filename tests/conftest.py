@@ -19,7 +19,7 @@ from app.main import app
 from app.models import Base, Tenant, TenantType
 
 
-DATABASE_URL = "sqlite://"
+DATABASE_URL = "sqlite+pysqlite:///./test_suite.db"
 
 
 engine = create_engine(
@@ -36,7 +36,7 @@ def db_session() -> Iterator[Session]:
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
 
-    tenant = Tenant(id="tenant-demo", name="Demo Tenant", type=TenantType.ISSUER)
+    tenant = Tenant(id="tenant-demo", name="Demo Tenant", type=TenantType.SPONSOR)
     session.add(tenant)
     session.commit()
 

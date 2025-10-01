@@ -147,12 +147,36 @@ Each story lists **Acceptance Criteria (AC)** and **Prompts** you can paste into
   - `POST /plans/enroll` validates employee/tenant and creates `EmployeePlan`.
 - **Prompt**
   - Implement enrollment API with Pydantic validation and alembic migration for EmployeePlan. Include 3 example cURL requests in README.
+- **Implemented**
+  - `POST /api/plans/enroll` accepts `employee_id`, `plan_type`, and optional `shareholder_id` / `vesting_schedule`.
+  - Enforces sponsor-tenant scope and SERIALIZABLE transactions to avoid duplicate enrollments.
+  - Example requests:
+
+    ```bash
+    curl -X POST http://localhost:8000/api/plans/enroll \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"employee_id":"emp-123","plan_type":"RSU"}'
+
+    curl -X POST http://localhost:8000/api/plans/enroll \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"employee_id":"emp-456","plan_type":"401K","vesting_schedule":{"type":"graded","cliff_months":6,"total_months":30}}'
+
+    curl -X POST http://localhost:8000/api/plans/enroll \
+      -H "Authorization: Bearer <token>" \
+      -H "Content-Type: application/json" \
+      -d '{"employee_id":"emp-789","plan_type":"RSU","shareholder_id":"<shareholder-id>"}'
+    ```
 
 **C2. Contribution Tracking**
 - **AC**
   - `POST /plans/{id}/contributions` appends contribution with timestamp; updates running balance atomically.
 - **Prompt**
   - Add contribution endpoint using SQLAlchemy transaction with SERIALIZABLE isolation; include unit tests for concurrent updates.
+- **Implemented**
+  - `POST /api/plans/{id}/contributions` normalizes contribution amounts, creates `Transaction` rows, and updates plan totals atomically under SERIALIZABLE isolation.
+  - Concurrency unit tests stress simultaneous contributions to ensure no lost updates.
 
 **C3. Vesting Schedule Computation**
 - **AC**
@@ -160,6 +184,10 @@ Each story lists **Acceptance Criteria (AC)** and **Prompts** you can paste into
   - Scheduled job updates `vested_balance` monthly.
 - **Prompt (Rust)**
   - Write a Rust module to compute vested balances given cliff/graded rules. Include doc tests and examples.
+- **Implemented**
+  - Rust `vesting` crate exposes an Axum router at `/vesting/calculate`, calculating cliff and graded vesting amounts with doc-tested logic.
+  - Python `VestingServiceClient` (synchronous) wraps the HTTP API for future orchestration layers.
+  - Added asyncio-based monthly scheduler stub (with tests) to trigger vesting updates once per month.
 
 ---
 
