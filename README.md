@@ -2,8 +2,7 @@
 
 > **Epic**: Build a cloud‑native, multi‑tenant SaaS platform for **Issuer Central** and **Employee Plan Sponsor** use cases — covering shareholder records, plan enrollment, contributions, vesting, distributions, proxy voting, reporting, and compliance.
 
-This README is designed to be **Codex/Copilot/Amazon Q friendly**: every story includes *clear acceptance criteria* and *ready‑to‑paste prompts* to generate code in Python (FastAPI) or Rust (Axum).
-
+ 
 ---
 
 ## 1) Problem Statement & Goals
@@ -83,35 +82,6 @@ GET    /reports/holdings
 
 ---
 
-## 6) Backlog — Stories & Tasks (Codex‑ready)
-
-Each story lists **Acceptance Criteria (AC)** and **Prompts** you can paste into Copilot/Q.
-
-### A. Identity & Multitenancy
-
-**A1. JWT Auth with Refresh Tokens**
-- **AC**
-  - `/auth/login` issues access+refresh tokens (RS256).
-  - Tokens embed `tenant_id`, `role`, `sub`.
-  - Refresh flow rotates tokens; revocation list supported.
-- **Prompt (FastAPI)**
-  - Create FastAPI endpoints for `/auth/login` and `/auth/refresh` using `python-jose` RS256 JWTs. Include Pydantic models, password hashing, and a token blacklist table in Postgres via SQLAlchemy.
-
-**A2. RBAC Middleware**
-- **AC**
-  - Decorator/guard enforces role per route.
-  - Unit tests for ADMIN vs EMPLOYEE access.
-- **Prompt (Rust/Axum)**
-  - Implement an Axum middleware that extracts a JWT from `Authorization: Bearer`, validates RS256, and denies requests lacking required roles. Provide unit tests with a mock JWKS.
-
-**A3. Tenant Isolation**
-- **AC**
-  - All queries filter by `tenant_id`.
-  - Migrations add `tenant_id` and FKs; unique `(tenant_id, external_ref)`.
-- **Prompt**
-  - Write SQLAlchemy models for Tenant, User, Shareholder with `tenant_id` column and alembic migration enforcing FK/unique constraints.
-
----
 
 ### B. Shareholder Management
 
