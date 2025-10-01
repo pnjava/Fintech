@@ -1,0 +1,5 @@
+apiVersion: v2
+name: fintech
+version: 0.1.0
+description: Helm chart for the Fintech API deployment
+appVersion: "0.1.0"

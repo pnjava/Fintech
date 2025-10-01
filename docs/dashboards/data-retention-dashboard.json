@@ -1,0 +1,32 @@
+{
+  "title": "Data Retention Overview",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Audit Logs Deleted",
+      "targets": [
+        {
+          "expr": "sum(increase(data_retention_audit_logs_deleted_total[1h]))"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Transactions Deleted",
+      "targets": [
+        {
+          "expr": "sum(increase(data_retention_transactions_deleted_total[1h]))"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Retention Job Duration",
+      "targets": [
+        {
+          "expr": "rate(http_request_latency_seconds_sum{path='/metrics'}[5m])"
+        }
+      ]
+    }
+  ]
+}

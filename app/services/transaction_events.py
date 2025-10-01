@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import Callable
+from typing import Any
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -16,6 +17,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings, get_settings
+from app.obs import inject_traceparent, span_from_traceparent
 from app.models import Transaction
 from app.services.reporting import TransactionReportingService
 
@@ -93,11 +95,21 @@ class TransactionEventPublisher:
         event = TransactionEvent.from_transaction(transaction=transaction, event_type=event_type)
         payload = event.model_dump(mode="json")
         producer = self._get_producer()
+        headers: list[tuple[str, bytes]] | None = None
+        if self._settings.enable_tracing:
+            carrier = inject_traceparent({})
+            traceparent = carrier.get("traceparent")
+            if traceparent:
+                headers = [("traceparent", traceparent.encode("utf-8"))]
         logger.debug(
             "publishing transaction event",
             extra={"transaction_id": transaction.id, "event_type": event_type},
         )
-        producer.send(self._settings.transaction_events_topic, value=payload)
+        producer.send(
+            self._settings.transaction_events_topic,
+            value=payload,
+            headers=headers,
+        )
         producer.flush()
 
 
@@ -147,8 +159,18 @@ class TransactionEventConsumer:
         try:
             for partition_records in records.values():
                 for record in partition_records:
-                    event = TransactionEvent.model_validate(record.value)
-                    reporter.apply_event(event)
+                    payload = self._extract_value(record)
+                    if payload is None:
+                        continue
+                    event = TransactionEvent.model_validate(payload)
+                    traceparent = self._extract_traceparent(record)
+                    with span_from_traceparent(
+                        "transaction_events.apply",
+                        traceparent,
+                        event_type=event.event_type,
+                        transaction_id=event.transaction_id,
+                    ):
+                        reporter.apply_event(event)
                     processed = True
             if processed:
                 session.commit()
@@ -162,6 +184,34 @@ class TransactionEventConsumer:
         finally:
             session.close()
         return processed
+
+    @staticmethod
+    def _extract_value(record: Any) -> Any:
+        if hasattr(record, "value"):
+            return record.value
+        if isinstance(record, dict):
+            return record.get("value")
+        return None
+
+    @staticmethod
+    def _extract_traceparent(record: Any) -> str | None:
+        headers: Any
+        if hasattr(record, "headers"):
+            headers = record.headers
+        elif isinstance(record, dict):
+            headers = record.get("headers")
+        else:
+            headers = None
+        if not headers:
+            return None
+        for key, value in headers:
+            header_key = key.decode("utf-8") if isinstance(key, bytes) else key
+            if header_key != "traceparent":
+                continue
+            if isinstance(value, bytes):
+                return value.decode("utf-8")
+            return str(value)
+        return None
 
 
 __all__ = [

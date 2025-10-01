@@ -1,0 +1,35 @@
+image:
+  repository: ghcr.io/example/fintech
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+env:
+  APP_NAME: "Fintech API"
+  ENABLE_METRICS: "true"
+  ENABLE_TRACING: "true"
+
+replicaCount: 2
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+blueGreen:
+  enabled: false
+  activeColor: blue
+  standbyColor: green
+  standbyReplicas: 0

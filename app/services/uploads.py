@@ -49,6 +49,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings, get_settings
+from app.obs import inject_traceparent
 from app.models import Shareholder, ShareholderType
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,7 @@ class ShareholderUploadMessage:
     content_type: str
     original_filename: str | None
     enqueued_at: str
+    traceparent: str | None = None
 
     def to_json(self) -> str:
         return json.dumps(
@@ -101,6 +103,7 @@ class ShareholderUploadMessage:
                 "content_type": self.content_type,
                 "original_filename": self.original_filename,
                 "enqueued_at": self.enqueued_at,
+                "traceparent": self.traceparent,
             }
         )
 
@@ -115,6 +118,7 @@ class ShareholderUploadMessage:
             content_type=str(payload["content_type"]),
             original_filename=payload.get("original_filename"),
             enqueued_at=str(payload.get("enqueued_at") or datetime.now(timezone.utc).isoformat()),
+            traceparent=payload.get("traceparent"),
         )
 
 
@@ -220,6 +224,7 @@ class ShareholderUploadService:
             content_type=content_type or "application/octet-stream",
             original_filename=filename,
             enqueued_at=datetime.now(timezone.utc).isoformat(),
+            traceparent=inject_traceparent({}).get("traceparent"),
         )
         sqs_client = self._get_sqs_client()
         sqs_client.send_message(

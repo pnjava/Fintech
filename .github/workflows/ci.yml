@@ -7,25 +7,51 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e .[dev]
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files
+
       - name: Lint
         run: |
-          ruff check api
-          black --check api
-          isort --check-only api
+          ruff check app
+          black --check app
+          isort --check-only app
+
       - name: Type check
-        run: mypy api
-      - name: Tests
-        run: pytest
+        run: mypy app
+
+      - name: Unit tests with coverage
+        run: pytest tests/unit --cov=app --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+
+      - name: Start integration stack
+        run: docker compose -f docker-compose.yml up -d --quiet-pull
+
+      - name: Integration tests
+        run: pytest tests/integration -q
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f docker-compose.yml down --remove-orphans
+
+      - name: Build container image
+        run: docker build -t fintech-platform:ci .
+
+      - name: Helm dry run
+        run: helm template fintech infra/helm/fintech

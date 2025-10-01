@@ -186,10 +186,15 @@ def _transaction_event_publisher_stub(monkeypatch: pytest.MonkeyPatch) -> Iterat
 
     class DummyKafkaProducer:
         def __init__(self, *_: object, **__: object) -> None:
-            self.messages: list[dict[str, str]] = []
+            self.messages: list[dict[str, object]] = []
 
-        def send(self, topic: str, value: dict[str, str]) -> None:
-            self.messages.append({"topic": topic, "value": json.dumps(value)})
+        def send(
+            self,
+            topic: str,
+            value: dict[str, str],
+            headers: list[tuple[str, bytes]] | None = None,
+        ) -> None:
+            self.messages.append({"topic": topic, "value": json.dumps(value), "headers": headers})
 
         def flush(self) -> None:  # pragma: no cover - compatibility shim
             return None
