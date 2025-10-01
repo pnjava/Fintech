@@ -6,6 +6,7 @@ from .proxy_ballot import ProxyBallot
 from .shareholder import Shareholder, ShareholderType
 from .tenant import Tenant, TenantStatus, TenantType
 from .transaction import Transaction, TransactionStatus, TransactionType
+from .transaction_report import TransactionReport
 from .user import User, UserRole, UserStatus
 
 __all__ = [
@@ -24,6 +25,7 @@ __all__ = [
     "Transaction",
     "TransactionStatus",
     "TransactionType",
+    "TransactionReport",
     "User",
     "UserRole",
     "UserStatus",

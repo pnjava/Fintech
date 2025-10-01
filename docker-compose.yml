@@ -138,6 +138,17 @@ services:
     volumes:
       - ./.env.example:/app/.env:ro
 
+  transaction-reporting:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m workers.transaction_reporting
+    depends_on:
+      - kafka
+      - db
+    volumes:
+      - ./.env.example:/app/.env:ro
+
 
 volumes:
   postgres_data:

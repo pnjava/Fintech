@@ -1,6 +1,7 @@
 """Disbursement orchestration services."""
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -12,6 +13,7 @@ from sqlalchemy.orm.exc import StaleDataError
 
 from app.core.config import Settings, get_settings
 from app.models import AuditLog, Shareholder, Transaction, TransactionStatus, TransactionType
+from app.services.transaction_events import TransactionEventPublisher
 
 
 class DisbursementError(RuntimeError):
@@ -155,6 +157,7 @@ class DisbursementService:
         *,
         settings: Settings | None = None,
         adapter: ACHAdapter | None = None,
+        event_publisher: TransactionEventPublisher | None = None,
     ) -> None:
         self._session = session
         self._settings = settings or get_settings()
@@ -162,6 +165,7 @@ class DisbursementService:
             endpoint=self._settings.ach_adapter_url,
             timeout_seconds=self._settings.ach_adapter_timeout_seconds,
         )
+        self._event_publisher = event_publisher or TransactionEventPublisher(settings=self._settings)
 
     def disburse(
         self,
@@ -195,6 +199,7 @@ class DisbursementService:
         )
         self._session.add(transaction)
         self._session.flush()
+        self._emit_event(transaction, event_type="CREATED")
 
         adapter_request = ACHDisbursementRequest(
             tenant_id=tenant_id,
@@ -274,6 +279,16 @@ class DisbursementService:
         except StaleDataError as exc:
             self._session.rollback()
             raise DisbursementConcurrencyError("Transaction was modified concurrently") from exc
+        self._emit_event(transaction, event_type="STATUS_CHANGED")
+
+    def _emit_event(self, transaction: Transaction, *, event_type: str) -> None:
+        try:
+            self._event_publisher.publish(transaction, event_type=event_type)
+        except Exception as exc:  # pragma: no cover - event bus failures logged only
+            logging.getLogger(__name__).warning(
+                "failed to publish transaction event",
+                extra={"transaction_id": transaction.id, "event_type": event_type, "error": str(exc)},
+            )
 
     def _record_audit(
         self,

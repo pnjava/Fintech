@@ -1,7 +1,7 @@
 """Top level API router registration."""
 from fastapi import APIRouter, FastAPI
 
-from app.api.routes import auth, dividends, health, plans, proxy, shareholders, transactions
+from app.api.routes import auth, dividends, health, plans, proxy, shareholders, transactions, uploads
 
 
 def register_routes(application: FastAPI) -> None:
@@ -15,6 +15,7 @@ def register_routes(application: FastAPI) -> None:
     api_router.include_router(dividends.router, tags=["dividends"])
     api_router.include_router(proxy.router, tags=["proxy"])
     api_router.include_router(transactions.router, tags=["transactions"])
+    api_router.include_router(uploads.router, tags=["uploads"])
 
     application.include_router(api_router)
 
