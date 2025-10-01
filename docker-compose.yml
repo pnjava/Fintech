@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./:/app
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://fintech:fintech@db:5432/fintech
+      - REDIS_URL=redis://redis:6379/0
+      - AWS_ENDPOINT_URL=http://localstack:4566
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+      - localstack
+      - redpanda
+
+  worker:
+    build: .
+    command: python -m app.workers.ingestion
+    volumes:
+      - ./:/app
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://fintech:fintech@db:5432/fintech
+      - REDIS_URL=redis://redis:6379/0
+      - AWS_ENDPOINT_URL=http://localstack:4566
+    depends_on:
+      - db
+      - redis
+      - localstack
+      - redpanda
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: fintech
+      POSTGRES_USER: fintech
+      POSTGRES_PASSWORD: fintech
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  localstack:
+    image: localstack/localstack:2.3
+    environment:
+      - SERVICES=s3,sqs
+      - DEFAULT_REGION=us-east-1
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    volumes:
+      - localstack_data:/var/lib/localstack
+
+  redpanda:
+    image: docker.redpanda.com/vectorized/redpanda:v23.3.9
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --overprovisioned
+      - --kafka-addr=PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+      - --check=false
+    ports:
+      - "9092:9092"
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+
+volumes:
+  postgres_data:
+  localstack_data:
+  redpanda_data:
