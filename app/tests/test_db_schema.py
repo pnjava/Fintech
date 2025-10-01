@@ -7,10 +7,12 @@ import pytest
 
 sqlalchemy = pytest.importorskip("sqlalchemy")
 alembic = pytest.importorskip("alembic")
+alembic_command = pytest.importorskip("alembic.command")
+alembic_config_module = pytest.importorskip("alembic.config")
 
 sa = sqlalchemy
-command = alembic.command
-Config = alembic.config.Config
+command = alembic_command
+Config = alembic_config_module.Config
 
 
 @pytest.fixture(scope="session")
