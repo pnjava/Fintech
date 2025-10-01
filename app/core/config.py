@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     default_user_hashed_password: str = Field(
         default="$2b$12$oyI2qhzyapMI2vlA38nS4uK91tQ8gjVjTgQExlbDGQLHw6/oEFzOG"
     )  # password: changeme
+    default_user_password: str = Field(default="changeme")
 
     class Config:
         env_file = ".env"
