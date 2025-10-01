@@ -1,0 +1,44 @@
+{
+  "title": "Fintech Platform Observability",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "HTTP Request Latency",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 latency"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Request Error Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(http_request_errors_total[5m]))"
+        }
+      ],
+      "thresholds": "0.1,1"
+    },
+    {
+      "type": "table",
+      "title": "Worker Queue Depth",
+      "targets": [
+        {
+          "expr": "worker_queue_depth"
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": "Prometheus",
+        "definition": "label_values(http_requests_total, path)"
+      }
+    ]
+  }
+}

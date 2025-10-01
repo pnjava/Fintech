@@ -1,0 +1,39 @@
+{{- if .Values.blueGreen.enabled }}
+{{- $color := .Values.blueGreen.standbyColor -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fintech.fullname" . }}-{{ $color }}
+  labels:
+    {{- include "fintech.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+    app.kubernetes.io/version: {{ $color }}
+spec:
+  replicas: {{ .Values.blueGreen.standbyReplicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "fintech.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      version: {{ $color }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "fintech.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        version: {{ $color }}
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}

@@ -272,20 +272,41 @@ pip install --upgrade pip
 pip install -e .[dev]
 pre-commit install
 
-# Run linters and tests
-make lint
-make typecheck
-make test
+# Static analysis mirrors CI
+pre-commit run --all-files
+ruff check app
+black --check app
+isort --check-only app
+mypy app
 
-# Start the API locally
-make run
+# Tests and coverage (≥80%)
+pytest tests/unit --cov=app --cov-report=term-missing --cov-fail-under=80
+docker compose -f docker-compose.yml up -d --quiet-pull
+pytest tests/integration -q
+docker compose -f docker-compose.yml down --remove-orphans
 
-# Bring up the full stack (Postgres, Kafka, LocalStack, observability)
-docker compose up -d
+# Runtime commands
+uvicorn app.main:app --reload --port 8000
+python -m workers.upload_validator.main
+python -m workers.transaction_reporting.main
+python -m workers.data_retention.main
+python scripts/generate_openapi.py
 
-# Tear everything down
-docker compose down --remove-orphans
+# Containers & IaC checks
+docker build -t fintech-platform:local .
+helm template fintech infra/helm/fintech
+terraform -chdir=infra/terraform plan
 ```
+
+### Observability & Compliance
+- Prometheus metrics are served at `http://localhost:8000/metrics` with latency, rate, error, queue-depth and retention counters.
+- OpenTelemetry tracing is enabled by default; configure `OTEL_EXPORTER_ENDPOINT` to forward spans to your collector.
+- Runbooks (`docs/runbooks/`) and dashboards (`docs/dashboards/`) are version controlled for repeatable operations.
+- `scripts/generate_openapi.py` writes the latest API contract to `docs/openapi.json` for documentation portals.
+
+### Helm & Terraform Stubs
+- `infra/helm/fintech` ships a deployment with Horizontal Pod Autoscaler and optional blue/green toggle via `blueGreen.enabled`.
+- `infra/terraform` provisions S3 lifecycle policies aligned with `DataRetentionService.build_s3_lifecycle_policy()` and deploys the Helm chart.
 
 ---
 

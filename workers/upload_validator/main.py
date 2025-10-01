@@ -1,4 +1,5 @@
 """Async worker validating shareholder uploads."""
+
 from __future__ import annotations
 
 import asyncio
@@ -9,13 +10,16 @@ import boto3
 
 from app.core.config import get_settings
 from app.db.session import SessionLocal
+from app.obs import report_queue_depth
 from app.services.uploads import (
     ShareholderUploadMessage,
     ShareholderUploadService,
     process_upload_message,
 )
+from app.workers.observability import configure_worker, worker_span
 
 logger = logging.getLogger(__name__)
+QUEUE_NAME = "shareholder-upload-validation"
 
 
 class UploadValidatorWorker:
@@ -50,12 +54,15 @@ class UploadValidatorWorker:
             WaitTimeSeconds=1,
         )
         messages = response.get("Messages", [])
+        report_queue_depth(QUEUE_NAME, len(messages))
         if not messages:
             return False
 
+        remaining = len(messages)
         for message in messages:
             body = message.get("Body", "")
             receipt = message.get("ReceiptHandle")
+            remaining -= 1
             try:
                 payload = ShareholderUploadMessage.from_json(body)
             except Exception as exc:  # pragma: no cover - defensive guard
@@ -67,15 +74,20 @@ class UploadValidatorWorker:
                 )
             else:
                 try:
-                    await asyncio.to_thread(
-                        process_upload_message,
-                        message=payload,
-                        session_factory=SessionLocal,
-                        service=self._service,
-                        s3_client=self._s3_client,
-                        sqs_client=self._sqs_client,
-                        dead_letter_queue_url=self._settings.upload_dead_letter_queue_url,
-                    )
+                    with worker_span(
+                        "upload_validator.process",
+                        traceparent=payload.traceparent,
+                        upload_id=payload.upload_id,
+                    ):
+                        await asyncio.to_thread(
+                            process_upload_message,
+                            message=payload,
+                            session_factory=SessionLocal,
+                            service=self._service,
+                            s3_client=self._s3_client,
+                            sqs_client=self._sqs_client,
+                            dead_letter_queue_url=self._settings.upload_dead_letter_queue_url,
+                        )
                 except Exception as exc:  # pragma: no cover - worker logs unexpected failures
                     logger.exception(
                         "failed to process upload",
@@ -84,9 +96,7 @@ class UploadValidatorWorker:
                     await asyncio.to_thread(
                         self._sqs_client.send_message,
                         QueueUrl=self._settings.upload_dead_letter_queue_url,
-                        MessageBody=json.dumps(
-                            {"upload_id": payload.upload_id, "error": str(exc)}
-                        ),
+                        MessageBody=json.dumps({"upload_id": payload.upload_id, "error": str(exc)}),
                     )
             finally:
                 if receipt:
@@ -95,10 +105,12 @@ class UploadValidatorWorker:
                         QueueUrl=self._settings.upload_queue_url,
                         ReceiptHandle=receipt,
                     )
+            report_queue_depth(QUEUE_NAME, remaining)
         return True
 
 
 async def run() -> None:
+    configure_worker("upload-validator-worker", queues=[QUEUE_NAME])
     worker = UploadValidatorWorker()
     await worker.run_forever()
 

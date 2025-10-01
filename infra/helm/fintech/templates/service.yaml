@@ -1,0 +1,21 @@
+{{- $color := "blue" -}}
+{{- if .Values.blueGreen.enabled -}}
+{{- $color = .Values.blueGreen.activeColor -}}
+{{- end -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fintech.fullname" . }}
+  labels:
+    {{- include "fintech.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: {{ include "fintech.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    version: {{ $color }}

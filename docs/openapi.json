@@ -1,0 +1,1588 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Fintech Platform",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/healthz": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Liveness check",
+        "operationId": "health_check_api_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Check Api Healthz Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/readyz": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Readiness check",
+        "operationId": "readiness_check_api_readyz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Readiness Check Api Readyz Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Issue JWT access tokens",
+        "operationId": "login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Rotate JWT refresh tokens",
+        "operationId": "refresh_token_api_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/admin-area": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Protected resource accessible to admins only",
+        "operationId": "admin_area_api_auth_admin_area_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Admin Area Api Auth Admin Area Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/auth/employee-area": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Protected resource accessible to employees and admins",
+        "operationId": "employee_area_api_auth_employee_area_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Employee Area Api Auth Employee Area Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/plans/enroll": {
+      "post": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Enroll Plan",
+        "description": "Enroll an employee in a plan for the authenticated tenant.",
+        "operationId": "enroll_plan_api_plans_enroll_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanEnrollmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/plans/{plan_id}/contributions": {
+      "post": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Record Contribution",
+        "description": "Record a plan contribution and return the updated totals.",
+        "operationId": "record_contribution_api_plans__plan_id__contributions_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanContributionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanContributionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shareholders/": {
+      "get": {
+        "tags": [
+          "shareholders"
+        ],
+        "summary": "List Shareholders",
+        "operationId": "list_shareholders_api_shareholders__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ShareholderRead"
+                  },
+                  "type": "array",
+                  "title": "Response List Shareholders Api Shareholders  Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "shareholders"
+        ],
+        "summary": "Create Shareholder",
+        "operationId": "create_shareholder_api_shareholders__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareholderCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareholderRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/shareholders/{shareholder_id}": {
+      "get": {
+        "tags": [
+          "shareholders"
+        ],
+        "summary": "Get Shareholder",
+        "operationId": "get_shareholder_api_shareholders__shareholder_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shareholder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Shareholder Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareholderRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "shareholders"
+        ],
+        "summary": "Update Shareholder",
+        "operationId": "update_shareholder_api_shareholders__shareholder_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shareholder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Shareholder Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareholderUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareholderRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "shareholders"
+        ],
+        "summary": "Delete Shareholder",
+        "operationId": "delete_shareholder_api_shareholders__shareholder_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shareholder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Shareholder Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dividends/schedule": {
+      "post": {
+        "tags": [
+          "dividends"
+        ],
+        "summary": "Schedule Dividends",
+        "operationId": "schedule_dividends_api_dividends_schedule_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DividendScheduleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DividendScheduleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/proxy/votes": {
+      "post": {
+        "tags": [
+          "proxy"
+        ],
+        "summary": "Submit Proxy Vote",
+        "operationId": "submit_proxy_vote_api_proxy_votes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProxyVoteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProxyVoteRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/proxy/votes/summary": {
+      "get": {
+        "tags": [
+          "proxy"
+        ],
+        "summary": "Proxy Vote Summary",
+        "operationId": "proxy_vote_summary_api_proxy_votes_summary_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "meeting_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "title": "Meeting Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProxyVoteSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transactions/disburse": {
+      "post": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Create Disbursement",
+        "operationId": "create_disbursement_api_transactions_disburse_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisbursementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisbursementResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/uploads/shareholders": {
+      "post": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Upload Shareholders",
+        "operationId": "upload_shareholders_api_uploads_shareholders_post",
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Upload Shareholders Api Uploads Shareholders Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DisbursementRequest": {
+        "properties": {
+          "shareholder_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Shareholder Id"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "default": "USD"
+          },
+          "memo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memo"
+          },
+          "bank_account_number": {
+            "type": "string",
+            "maxLength": 34,
+            "minLength": 4,
+            "title": "Bank Account Number"
+          },
+          "bank_routing_number": {
+            "type": "string",
+            "maxLength": 9,
+            "minLength": 4,
+            "title": "Bank Routing Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "shareholder_id",
+          "amount",
+          "bank_account_number",
+          "bank_routing_number"
+        ],
+        "title": "DisbursementRequest"
+      },
+      "DisbursementResponse": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "shareholder_id": {
+            "type": "string",
+            "title": "Shareholder Id"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TransactionStatus"
+          },
+          "lock_version": {
+            "type": "integer",
+            "title": "Lock Version"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "shareholder_id",
+          "amount",
+          "currency",
+          "status",
+          "lock_version",
+          "request_id"
+        ],
+        "title": "DisbursementResponse"
+      },
+      "DividendScheduleRequest": {
+        "properties": {
+          "dividend_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Dividend Rate"
+          },
+          "record_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Date"
+          },
+          "memo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dividend_rate"
+        ],
+        "title": "DividendScheduleRequest"
+      },
+      "DividendScheduleResponse": {
+        "properties": {
+          "scheduled_events": {
+            "type": "integer",
+            "title": "Scheduled Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scheduled_events"
+        ],
+        "title": "DividendScheduleResponse"
+      },
+      "EmployeePlanStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "SUSPENDED",
+          "CLOSED"
+        ],
+        "title": "EmployeePlanStatus"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ADMIN",
+                  "EMPLOYEE",
+                  "COMPLIANCE",
+                  "OPS"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "PlanContributionRequest": {
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount",
+            "description": "Contribution amount in plan currency"
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "default": "USD"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount"
+        ],
+        "title": "PlanContributionRequest",
+        "description": "Contribution payload for an enrolled plan."
+      },
+      "PlanContributionResponse": {
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/PlanRead"
+          },
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan",
+          "transaction_id",
+          "amount",
+          "currency"
+        ],
+        "title": "PlanContributionResponse",
+        "description": "Response returned after recording a contribution."
+      },
+      "PlanEnrollmentRequest": {
+        "properties": {
+          "shareholder_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shareholder Id",
+            "description": "Existing shareholder identifier"
+          },
+          "employee_id": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Employee Id",
+            "description": "External employee identifier"
+          },
+          "plan_type": {
+            "$ref": "#/components/schemas/PlanType",
+            "description": "Plan type to enroll the employee in"
+          },
+          "vesting_schedule": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vesting Schedule",
+            "description": "Opaque vesting schedule definition stored on the plan record"
+          }
+        },
+        "type": "object",
+        "required": [
+          "employee_id",
+          "plan_type"
+        ],
+        "title": "PlanEnrollmentRequest",
+        "description": "Payload for enrolling an employee into a plan."
+      },
+      "PlanRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id"
+          },
+          "shareholder_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shareholder Id"
+          },
+          "employee_id": {
+            "type": "string",
+            "title": "Employee Id"
+          },
+          "plan_type": {
+            "$ref": "#/components/schemas/PlanType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EmployeePlanStatus"
+          },
+          "contribution_total": {
+            "type": "string",
+            "title": "Contribution Total"
+          },
+          "vesting_schedule": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vesting Schedule"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tenant_id",
+          "shareholder_id",
+          "employee_id",
+          "plan_type",
+          "status",
+          "contribution_total",
+          "vesting_schedule"
+        ],
+        "title": "PlanRead",
+        "description": "Serialized representation of an enrolled employee plan."
+      },
+      "PlanType": {
+        "type": "string",
+        "enum": [
+          "ESPP",
+          "RSU",
+          "401K",
+          "PENSION"
+        ],
+        "title": "PlanType"
+      },
+      "ProxyVoteCreate": {
+        "properties": {
+          "meeting_id": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Meeting Id"
+          },
+          "shareholder_id": {
+            "type": "string",
+            "maxLength": 36,
+            "title": "Shareholder Id"
+          },
+          "ballot_choices": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Ballot Choices"
+          },
+          "submitted_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "meeting_id",
+          "shareholder_id",
+          "ballot_choices"
+        ],
+        "title": "ProxyVoteCreate"
+      },
+      "ProxyVoteRead": {
+        "properties": {
+          "meeting_id": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Meeting Id"
+          },
+          "shareholder_id": {
+            "type": "string",
+            "maxLength": 36,
+            "title": "Shareholder Id"
+          },
+          "ballot_choices": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Ballot Choices"
+          },
+          "submitted_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted By"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "meeting_id",
+          "shareholder_id",
+          "ballot_choices",
+          "id",
+          "tenant_id"
+        ],
+        "title": "ProxyVoteRead"
+      },
+      "ProxyVoteSummary": {
+        "properties": {
+          "meeting_id": {
+            "type": "string",
+            "title": "Meeting Id"
+          },
+          "totals": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Totals"
+          },
+          "total_ballots": {
+            "type": "integer",
+            "title": "Total Ballots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "meeting_id",
+          "totals",
+          "total_ballots"
+        ],
+        "title": "ProxyVoteSummary"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest"
+      },
+      "ShareholderCreate": {
+        "properties": {
+          "external_ref": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "External Ref"
+          },
+          "full_name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Full Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 320
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ShareholderType",
+            "default": "INDIVIDUAL"
+          },
+          "total_shares": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Total Shares",
+            "default": "0"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "external_ref",
+          "full_name"
+        ],
+        "title": "ShareholderCreate"
+      },
+      "ShareholderRead": {
+        "properties": {
+          "external_ref": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "External Ref"
+          },
+          "full_name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Full Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 320
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ShareholderType",
+            "default": "INDIVIDUAL"
+          },
+          "total_shares": {
+            "type": "string",
+            "title": "Total Shares",
+            "default": "0"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "external_ref",
+          "full_name",
+          "id",
+          "tenant_id"
+        ],
+        "title": "ShareholderRead"
+      },
+      "ShareholderType": {
+        "type": "string",
+        "enum": [
+          "INDIVIDUAL",
+          "INSTITUTION"
+        ],
+        "title": "ShareholderType"
+      },
+      "ShareholderUpdate": {
+        "properties": {
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 320
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShareholderType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total_shares": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Shares"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "type": "object",
+        "title": "ShareholderUpdate"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in"
+        ],
+        "title": "TokenResponse"
+      },
+      "TransactionStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "SENT",
+          "SETTLED",
+          "FAILED"
+        ],
+        "title": "TransactionStatus"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

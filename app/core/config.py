@@ -40,6 +40,15 @@ class Settings(BaseSettings):
     )
     upload_validator_poll_interval_seconds: int = Field(default=2)
 
+    enable_metrics: bool = Field(default=True)
+    enable_tracing: bool = Field(default=True)
+    otel_exporter_endpoint: str | None = Field(default=None)
+
+    audit_log_retention_days: int = Field(default=365)
+    transaction_retention_days: int = Field(default=365)
+    upload_retention_days: int = Field(default=180)
+    data_retention_interval_seconds: int = Field(default=3600)
+
     kafka_bootstrap_servers: str = Field(default="kafka:9092")
     transaction_events_topic: str = Field(default="transaction-events")
     transaction_consumer_group: str = Field(default="transaction-reporting-service")
