@@ -1,4 +1,4 @@
-# Shareholder & Plan Sponsor Financial Product Platform (Equiniti)
+# Shareholder & Plan Sponsor Financial Product Platform (Fintech)
 
 > **Epic**: Build a cloud‑native, multi‑tenant SaaS platform for **Issuer Central** and **Employee Plan Sponsor** use cases — covering shareholder records, plan enrollment, contributions, vesting, distributions, proxy voting, reporting, and compliance.
 
