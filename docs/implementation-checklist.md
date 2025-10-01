@@ -28,9 +28,9 @@
 - [ ] Proxy voting module with reporting.
 
 ## Step 5: Plan Sponsor Module
-- [ ] Enrollment and contribution endpoints with SERIALIZABLE isolation.
-- [ ] Rust vesting service with client wrapper.
-- [ ] Monthly job to update vested balances.
+- [x] Enrollment and contribution endpoints with SERIALIZABLE isolation.
+- [x] Rust vesting service with client wrapper.
+- [x] Monthly job to update vested balances.
 
 ## Step 6: Financial Transactions
 - [ ] Disbursement API with state machine and mock ACH adapter.
