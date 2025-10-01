@@ -1,37 +1,39 @@
-.PHONY: install format lint test run worker docker-up docker-down
+PYTHON ?= python3
+PIP ?= pip
+APP_MODULE ?= api.app.main:app
+ENV_FILE ?= .env
 
-VENV?=.venv
-PYTHON?=python3
-PIP?=$(VENV)/bin/pip
-UVICORN?=$(VENV)/bin/uvicorn
+.PHONY: setup lint typecheck test cov run migrate docker-up docker-down format
 
-install: $(VENV)/bin/activate
-
-$(VENV)/bin/activate: pyproject.toml
-$(PYTHON) -m venv $(VENV)
-$(PIP) install --upgrade pip
-$(PIP) install -e .[test]
-touch $(VENV)/bin/activate
+setup:
+    $(PIP) install --upgrade pip
+    $(PIP) install -e .[dev]
+    pre-commit install
 
 format:
-$(VENV)/bin/isort app
-$(VENV)/bin/black app
+    black api
+    isort api
 
 lint:
-$(VENV)/bin/black --check app
-$(VENV)/bin/isort --check-only app
+    ruff check api
+
+typecheck:
+    mypy api
 
 test:
-$(VENV)/bin/pytest
+    pytest
+
+cov:
+    pytest --cov=api --cov-report=xml --cov-report=term-missing
 
 run:
-$(UVICORN) app.main:app --reload
+    uvicorn $(APP_MODULE) --host 0.0.0.0 --port 8000 --reload --env-file $(ENV_FILE)
 
-worker:
-$(VENV)/bin/python -m app.workers.ingestion
+migrate:
+    alembic upgrade head
 
 docker-up:
-docker compose up --build
+    docker compose up -d --build
 
 docker-down:
-docker compose down -v
+    docker compose down --remove-orphans

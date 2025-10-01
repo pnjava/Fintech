@@ -1,8 +1,10 @@
-FROM python:3.11-slim AS base
+FROM python:3.11-slim
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    POETRY_VIRTUALENVS_CREATE=false
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    POETRY_VERSION=1.6.1
+
 
 WORKDIR /app
 
@@ -13,6 +15,7 @@ RUN apt-get update \
 COPY pyproject.toml README.md ./
 
 RUN pip install --upgrade pip \
+
     && pip install .[test]
 
 COPY app ./app

@@ -238,15 +238,25 @@ Each story lists **Acceptance Criteria (AC)** and **Prompts** you can paste into
 ## 8) Local Dev (Quickstart)
 
 ```bash
-# Python
-python -m venv .venv && source .venv/bin/activate
-pip install fastapi uvicorn[standard] sqlalchemy psycopg2-binary pydantic[dotenv] alembic
-uvicorn app.main:app --reload
+# Bootstrap the project
+python3 -m venv .venv && source .venv/bin/activate
+pip install --upgrade pip
+pip install -e .[dev]
+pre-commit install
 
-# Rust
-cargo new issuer-central-api && cd issuer-central-api
-cargo add axum tokio serde serde_json jsonwebtoken sqlx --features runtime-tokio
-cargo run
+# Run linters and tests
+make lint
+make typecheck
+make test
+
+# Start the API locally
+make run
+
+# Bring up the full stack (Postgres, Kafka, LocalStack, observability)
+docker compose up -d
+
+# Tear everything down
+docker compose down --remove-orphans
 ```
 
 ---
