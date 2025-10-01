@@ -1,3 +1,8 @@
 # Database Migrations
 
-Initialize Alembic migrations with `alembic init migrations` after dependencies are installed.
+Use Alembic to manage database schema revisions. Configure the target database URL in
+`alembic.ini` or via the `sqlalchemy.url` override, then run:
+
+```bash
+alembic upgrade head
+```
