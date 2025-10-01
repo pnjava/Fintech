@@ -69,7 +69,7 @@ exclude = ["tests/"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --cov=api --cov-report=term-missing"
+addopts = "-ra -q"
 asyncio_mode = "auto"
 
 [tool.coverage.run]

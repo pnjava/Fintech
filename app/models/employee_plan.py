@@ -14,7 +14,7 @@ from app.models.base import Base, TimestampMixin
 class PlanType(str, enum.Enum):
     ESPP = "ESPP"
     RSU = "RSU"
-    401K = "401K"
+    FOUR01K = "401K"
     PENSION = "PENSION"
 
 

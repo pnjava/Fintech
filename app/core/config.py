@@ -4,7 +4,8 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 def _load_default_private_key() -> str:
@@ -21,7 +22,7 @@ class Settings(BaseSettings):
     redoc_url: str | None = Field(default="/redoc")
     openapi_url: str = Field(default="/openapi.json")
 
-    database_url: str = Field(default="postgresql+psycopg2://fintech:fintech@db:5432/fintech")
+    database_url: str = Field(default="postgresql+psycopg://fintech:fintech@db:5432/fintech")
     redis_url: str = Field(default="redis://redis:6379/0")
 
     jwt_algorithm: str = Field(default="RS256")
