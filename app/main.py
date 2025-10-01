@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from app.api.routes import register_routes
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
+from app.obs import AuditMiddleware
 
 
 def create_application(settings: Settings | None = None) -> FastAPI:
@@ -21,6 +22,7 @@ def create_application(settings: Settings | None = None) -> FastAPI:
         openapi_url=settings.openapi_url,
     )
 
+    application.add_middleware(AuditMiddleware, settings=settings)
     register_routes(application)
 
     return application

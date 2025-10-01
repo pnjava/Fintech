@@ -5,7 +5,7 @@ import enum
 import uuid
 
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey, Index, JSON, Numeric, String
+from sqlalchemy import ForeignKey, Index, Integer, JSON, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -51,10 +51,13 @@ class Transaction(TimestampMixin, Base):
     )
     reference: Mapped[str | None] = mapped_column(String(128))
     details: Mapped[dict | None] = mapped_column(JSON)
+    lock_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     tenant = relationship("Tenant", back_populates="transactions")
     shareholder = relationship("Shareholder", back_populates="transactions")
     plan = relationship("EmployeePlan", back_populates="transactions")
+
+    __mapper_args__ = {"version_id_col": lock_version}
 
 
 __all__ = ["Transaction", "TransactionType", "TransactionStatus"]
