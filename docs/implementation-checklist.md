@@ -37,9 +37,9 @@
 - [ ] Audit logging middleware writing to structured logs and S3.
 
 ## Step 7: Data Pipelines
-- [ ] Upload API storing files to S3 and enqueue messages.
-- [ ] Async validator worker with schema validation and dead-letter.
-- [ ] Kafka event producer/consumer with reporting tables.
+- [x] Upload API storing files to S3 and enqueue messages.
+- [x] Async validator worker with schema validation and dead-letter.
+- [x] Kafka event producer/consumer with reporting tables.
 
 ## Step 8: Observability & Compliance
 - [ ] Prometheus metrics and /metrics endpoint.

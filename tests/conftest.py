@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Iterator
 from io import BytesIO
 from pathlib import Path
 import sys
+from threading import Lock
 from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
 from botocore.exceptions import ClientError
@@ -54,6 +57,7 @@ class InMemoryS3Client:
         Key: str,
         Body: bytes,
         ContentType: str | None = None,
+        **_: object,
     ) -> dict[str, str]:
         bucket = self._buckets.setdefault(Bucket, {})
         if isinstance(Body, str):
@@ -66,6 +70,57 @@ class InMemoryS3Client:
     @property
     def buckets(self) -> dict[str, dict[str, bytes]]:
         return self._buckets
+
+
+class InMemorySQSClient:
+    """Naïve in-memory SQS stub for unit tests."""
+
+    def __init__(self) -> None:
+        self._queues: dict[str, list[dict[str, str]]] = {}
+        self._lock = Lock()
+
+    def send_message(self, *, QueueUrl: str, MessageBody: str, **_: object) -> dict[str, str]:
+        with self._lock:
+            queue = self._queues.setdefault(QueueUrl, [])
+            message_id = uuid4().hex
+            queue.append({"MessageId": message_id, "Body": MessageBody, "ReceiptHandle": ""})
+            return {"MessageId": message_id}
+
+    def receive_message(
+        self,
+        *,
+        QueueUrl: str,
+        MaxNumberOfMessages: int = 1,
+        **_: object,
+    ) -> dict[str, list[dict[str, str]]]:
+        with self._lock:
+            queue = self._queues.get(QueueUrl, [])
+            if not queue:
+                return {}
+            messages: list[dict[str, str]] = []
+            for entry in queue[:MaxNumberOfMessages]:
+                if not entry["ReceiptHandle"]:
+                    entry["ReceiptHandle"] = uuid4().hex
+                messages.append(
+                    {
+                        "MessageId": entry["MessageId"],
+                        "ReceiptHandle": entry["ReceiptHandle"],
+                        "Body": entry["Body"],
+                    }
+                )
+            return {"Messages": messages}
+
+    def delete_message(self, *, QueueUrl: str, ReceiptHandle: str, **_: object) -> None:
+        with self._lock:
+            queue = self._queues.get(QueueUrl, [])
+            for index, entry in enumerate(queue):
+                if entry.get("ReceiptHandle") == ReceiptHandle:
+                    queue.pop(index)
+                    break
+
+    def queue(self, queue_url: str) -> list[dict[str, str]]:
+        with self._lock:
+            return [dict(item) for item in self._queues.get(queue_url, [])]
 
 
 DATABASE_URL = "sqlite+pysqlite:///./test_suite.db"
@@ -109,6 +164,80 @@ def db_session() -> Iterator[Session]:
 
     yield session
     session.close()
+
+
+@pytest.fixture(autouse=True)
+def _transaction_event_publisher_stub(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[dict[str, str]]]:
+    events: list[dict[str, str]] = []
+
+    class StubPublisher:
+        def __init__(self, *_: object, **__: object) -> None:
+            self._events = events
+
+        def publish(self, transaction, *, event_type: str) -> None:  # type: ignore[no-untyped-def]
+            self._events.append(
+                {
+                    "transaction_id": transaction.id,
+                    "tenant_id": transaction.tenant_id,
+                    "event_type": event_type,
+                    "status": transaction.status.value,
+                }
+            )
+
+    class DummyKafkaProducer:
+        def __init__(self, *_: object, **__: object) -> None:
+            self.messages: list[dict[str, str]] = []
+
+        def send(self, topic: str, value: dict[str, str]) -> None:
+            self.messages.append({"topic": topic, "value": json.dumps(value)})
+
+        def flush(self) -> None:  # pragma: no cover - compatibility shim
+            return None
+
+    class DummyKafkaConsumer:
+        def __init__(self, *_: object, **__: object) -> None:
+            self.committed = False
+
+        def poll(self, timeout_ms: int) -> dict[str, list[dict[str, str]]]:  # pragma: no cover - default no-op
+            return {}
+
+        def commit(self) -> None:  # pragma: no cover - default no-op
+            self.committed = True
+
+    monkeypatch.setattr("app.services.disbursements.TransactionEventPublisher", StubPublisher)
+    monkeypatch.setattr("app.services.transaction_events.TransactionEventPublisher", StubPublisher)
+    monkeypatch.setattr("app.services.transaction_events.KafkaProducer", DummyKafkaProducer)
+    monkeypatch.setattr("app.services.transaction_events.KafkaConsumer", DummyKafkaConsumer)
+    yield events
+    events.clear()
+
+
+@pytest.fixture()
+def transaction_events(_transaction_event_publisher_stub: list[dict[str, str]]) -> list[dict[str, str]]:
+    return _transaction_event_publisher_stub
+
+
+@pytest.fixture()
+def sqs_client(
+    monkeypatch: pytest.MonkeyPatch,
+    audit_s3_client: InMemoryS3Client,
+) -> Iterator[InMemorySQSClient]:
+    client = InMemorySQSClient()
+
+    def _client_factory(service_name: str, *args: object, **kwargs: object):
+        if service_name == "s3":
+            return audit_s3_client
+        if service_name == "sqs":
+            return client
+        raise ValueError(f"Unsupported service: {service_name}")
+
+    from importlib import import_module
+
+    monkeypatch.setattr("app.services.uploads.boto3.client", _client_factory)
+
+    upload_module = import_module("workers.upload_validator.main")
+    monkeypatch.setattr(upload_module, "boto3", SimpleNamespace(client=_client_factory))
+    yield client
 
 
 @pytest.fixture()
