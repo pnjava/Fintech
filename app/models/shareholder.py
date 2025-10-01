@@ -5,7 +5,7 @@ import enum
 import uuid
 
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey, Index, JSON, Numeric, String, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, Index, JSON, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -40,6 +40,7 @@ class Shareholder(TimestampMixin, Base):
     )
     total_shares: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False, default=0)
     profile: Mapped[dict | None] = mapped_column(JSON)
+    kyc_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     tenant = relationship("Tenant", back_populates="shareholders")
     plans = relationship("EmployeePlan", back_populates="shareholder")

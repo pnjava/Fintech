@@ -9,6 +9,7 @@ from .plan import (
 )
 from .proxy import ProxyVoteCreate, ProxyVoteRead, ProxyVoteSummary
 from .shareholder import ShareholderCreate, ShareholderRead, ShareholderUpdate
+from .transaction import DisbursementRequest, DisbursementResponse
 
 __all__ = [
     "DividendEventPayload",
@@ -24,4 +25,6 @@ __all__ = [
     "ShareholderCreate",
     "ShareholderRead",
     "ShareholderUpdate",
+    "DisbursementRequest",
+    "DisbursementResponse",
 ]

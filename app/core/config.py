@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     database_url: str = Field(default="postgresql+psycopg://fintech:fintech@db:5432/fintech")
     redis_url: str = Field(default="redis://redis:6379/0")
 
+    aws_region: str = Field(default="us-east-1")
+    s3_endpoint_url: str | None = Field(default=None)
+    audit_log_bucket: str = Field(default="fintech-audit-logs")
+    audit_log_prefix: str = Field(default="audit/records")
+    audit_log_sample_rate: float = Field(default=1.0)
+
+    ach_adapter_url: str = Field(default="http://localhost:9010/ach/disburse")
+    ach_adapter_timeout_seconds: float = Field(default=5.0)
+
     jwt_algorithm: str = Field(default="RS256")
     jwt_private_key: str = Field(default_factory=_load_default_private_key)
     access_token_expire_minutes: int = Field(default=15)
