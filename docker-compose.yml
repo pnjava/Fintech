@@ -138,6 +138,7 @@ services:
     volumes:
       - ./.env.example:/app/.env:ro
 
+
 volumes:
   postgres_data:
   localstack_data:
@@ -145,3 +146,4 @@ volumes:
   kafka_data:
   grafana_data:
   elasticsearch_data:
+
