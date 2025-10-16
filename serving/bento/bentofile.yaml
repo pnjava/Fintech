@@ -1,0 +1,21 @@
+name: fintech-gpu-inference
+service: "service:svc"
+labels:
+  owner: fintech
+  stage: demo
+include:
+  - "../../ml/artifacts/*.ts"
+  - "service.py"
+python:
+  packages:
+    - torch
+    - numpy
+    - bentoml
+  lock_packages: false
+docker:
+  base_image: "nvidia/cuda:12.2.0-runtime-ubuntu22.04"
+  setup_script: |
+    apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
+  env:
+    NVIDIA_VISIBLE_DEVICES: all
+    NVIDIA_DRIVER_CAPABILITIES: compute,utility

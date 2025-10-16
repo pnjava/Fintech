@@ -1,0 +1,21 @@
+name: GPU CI (Build Only)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-gpu-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build GPU Docker image
+        run: |
+          docker build -f Dockerfile.gpu -t fintech-platform:gpu-ci .
+

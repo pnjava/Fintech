@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package fintech.ml;
+
+message Sample {
+  repeated float features = 1; // length 32
+}
+
+message PredictRequest {
+  repeated Sample samples = 1;
+}
+
+message Scores {
+  repeated float prob = 1; // probability per class
+}
+
+message PredictResponse {
+  repeated Scores scores = 1;
+}
+
+service Inference {
+  rpc Predict (PredictRequest) returns (PredictResponse);
+}
+

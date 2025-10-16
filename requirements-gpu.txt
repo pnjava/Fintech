@@ -1,0 +1,13 @@
+torch
+numpy
+bentoml
+xgboost
+fastapi
+uvicorn
+grpcio
+grpcio-tools
+prometheus-client
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+

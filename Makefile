@@ -37,3 +37,31 @@ docker-up:
 
 docker-down:
     docker compose down --remove-orphans
+
+# --- ML / GPU helpers ---
+.PHONY: train-pt train-xgb profile-pt bento-serve bento-build grpc-serve grpc-client kserve-apply
+
+train-pt:
+	python ml/train_pytorch.py
+
+train-xgb:
+	python -m ml.train_xgboost
+
+profile-pt:
+	python -m ml.profiler_torch
+
+bento-serve:
+	bentoml serve serving/bento/service.py:svc --port 9000 --host 0.0.0.0
+
+bento-build:
+	bentoml build serving/bento
+
+grpc-serve:
+	$(PYTHON) scripts/gen_proto.ps1 || true
+	$(PYTHON) -m ml_grpc.server
+
+kserve-apply:
+	kubectl apply -f infra/k8s/kserve/inferenceservice.yaml
+
+grpc-client:
+	$(PYTHON) -m ml_grpc.client

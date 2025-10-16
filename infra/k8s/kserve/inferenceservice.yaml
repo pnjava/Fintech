@@ -1,0 +1,21 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: fintech-gpu-inference
+spec:
+  predictor:
+    containers:
+      - name: bento-gpu
+        image: <your-registry>/fintech-bento-gpu:latest
+        env:
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: "all"
+          - name: NVIDIA_DRIVER_CAPABILITIES
+            value: "compute,utility"
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+

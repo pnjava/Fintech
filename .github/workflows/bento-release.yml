@@ -1,0 +1,52 @@
+name: Release Bento Image
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository_owner }}/fintech-bento-gpu
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install BentoML and deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install bentoml torch numpy
+
+      - name: Build Bento
+        run: |
+          bentoml build serving/bento -t fintech-gpu-inference:${{ env.VERSION }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Containerize and push
+        run: |
+          bentoml containerize fintech-gpu-inference:${{ env.VERSION }} \
+            -t $REGISTRY/${{ env.IMAGE_NAME }}:${{ env.VERSION }} \
+            -t $REGISTRY/${{ env.IMAGE_NAME }}:latest
+          docker push $REGISTRY/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          docker push $REGISTRY/${{ env.IMAGE_NAME }}:latest
+

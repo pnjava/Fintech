@@ -149,6 +149,22 @@ services:
     volumes:
       - ./.env.example:/app/.env:ro
 
+  inference-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    environment:
+      MODEL_PATH: /app/ml/artifacts/tinynet.ts
+    command: bash -lc "python3.11 ml/train_pytorch.py && bentoml serve serving/bento/service.py:svc --port 9000 --host 0.0.0.0"
+    ports:
+      - "9000:9000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+    runtime: nvidia
+
 
 volumes:
   postgres_data:
@@ -157,4 +173,3 @@ volumes:
   kafka_data:
   grafana_data:
   elasticsearch_data:
-
